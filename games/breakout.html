@@ -171,7 +171,7 @@
                   y: ball.y, 
                   dx: -ball.dx, 
                   dy: ball.dy, 
-                  color: ball.color, 
+                  color: mode === 1 ? "#facc15" : "#22c55e", // ✅ reward ball colors
                   owner: ball.owner, 
                   isReward: true 
                 });
