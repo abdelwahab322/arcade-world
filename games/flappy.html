@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Flappy Square</title>
+  <style>
+    body {
+      margin: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      background: #111827;
+    }
+    canvas {
+      background: #1f2937;
+      border: 4px solid #06b6d4;
+      border-radius: 10px;
+    }
+    #scoreBoard {
+      position: absolute;
+      top: 20px;
+      font-size: 24px;
+      color: #06b6d4;
+      font-family: Arial, sans-serif;
+    }
+  </style>
+</head>
+<body>
+  <div id="scoreBoard">Score: <span id="score">0</span></div>
+  <canvas id="gameCanvas" width="400" height="500"></canvas>
+
+  <script>
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas.getContext("2d");
+    const scoreEl = document.getElementById("score");
+
+    let square = { x: 50, y: 200, size: 20, dy: 0 };
+    let gravity = 0.5;
+    let jump = -8;
+    let pipes = [];
+    let score = 0;
+    let gameOver = false;
+
+    function drawSquare() {
+      ctx.fillStyle = "#06b6d4";
+      ctx.fillRect(square.x, square.y, square.size, square.size);
+    }
+
+    function drawPipes() {
+      ctx.fillStyle = "#34d399";
+      for (let i = 0; i < pipes.length; i++) {
+        let p = pipes[i];
+        ctx.fillRect(p.x, 0, p.width, p.top);
+        ctx.fillRect(p.x, canvas.height - p.bottom, p.width, p.bottom);
+      }
+    }
+
+    function updatePipes() {
+      if (pipes.length === 0 || pipes[pipes.length - 1].x < canvas.width - 200) {
+        let gap = 120;
+        let top = Math.floor(Math.random() * (canvas.height - gap - 50)) + 20;
+        pipes.push({
+          x: canvas.width,
+          width: 40,
+          top: top,
+          bottom: canvas.height - top - gap
+        });
+      }
+
+      for (let i = 0; i < pipes.length; i++) {
+        pipes[i].x -= 2;
+
+        // Score when passing a pipe
+        if (!pipes[i].scored && pipes[i].x + pipes[i].width < square.x) {
+          score++;
+          scoreEl.textContent = score;
+          pipes[i].scored = true;
+        }
+
+        // Collision detection
+        if (
+          square.x < pipes[i].x + pipes[i].width &&
+          square.x + square.size > pipes[i].x &&
+          (square.y < pipes[i].top ||
+          square.y + square.size > canvas.height - pipes[i].bottom)
+        ) {
+          endGame();
+        }
+      }
+
+      if (pipes[0] && pipes[0].x + pipes[0].width < 0) {
+        pipes.shift();
+      }
+    }
+
+    function endGame() {
+      gameOver = true;
+      ctx.fillStyle = "white";
+      ctx.font = "30px Arial";
+      ctx.fillText("Game Over!", 120, 250);
+      ctx.font = "20px Arial";
+      ctx.fillText("Press R to Restart", 115, 280);
+    }
+
+    function update() {
+      if (gameOver) return;
+
+      ctx.fillStyle = "#1f2937";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      square.dy += gravity;
+      square.y += square.dy;
+
+      if (square.y + square.size > canvas.height || square.y < 0) {
+        endGame();
+      }
+
+      updatePipes();
+      drawPipes();
+      drawSquare();
+
+      requestAnimationFrame(update);
+    }
+
+    document.addEventListener("keydown", (e) => {
+      if (e.code === "Space" && !gameOver) {
+        square.dy = jump;
+      }
+      if (e.key === "r" || e.key === "R") {
+        restartGame();
+      }
+    });
+
+    function restartGame() {
+      square = { x: 50, y: 200, size: 20, dy: 0 };
+      pipes = [];
+      score = 0;
+      scoreEl.textContent = score;
+      gameOver = false;
+      update();
+    }
+
+    restartGame();
+  </script>
+</body>
+</html>

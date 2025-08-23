@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Arcade Hub — Index</title>
+<style>
+:root{--bg:#0b0f1d;--card:#0f1724;--text:#e6eef8}
+*{box-sizing:border-box}
+body{margin:0;font-family:system-ui,Arial;background:linear-gradient(180deg,#071021,#0b0f1d);color:var(--text)}
+header{padding:18px;text-align:center}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px;padding:16px;max-width:1200px;margin:0 auto}
+.card{background:var(--card);padding:10px;border-radius:12px;border:1px solid rgba(255,255,255,.04);cursor:pointer;text-align:left}
+.card img{width:100%;height:120px;object-fit:cover;border-radius:8px}
+.meta{padding-top:8px}
+.title{font-weight:700}
+.cat{color:rgba(230,238,248,.7);font-size:13px}
+footer{text-align:center;padding:20px;color:rgba(230,238,248,.6)}
+</style>
+</head>
+<body>
+<header>
+<h1>🎮 Arcade Hub</h1>
+<p>Lightweight index — click a card to open the game page (each game is a separate file).</p>
+</header>
+
+
+<main class="grid" id="grid">
+<!-- Cards: Keep these links exactly as shown. Add more by copying one. -->
+<a class="card" href="games/snake.html" target="_blank">
+<img src="https://picsum.photos/seed/snake/640/360" alt="Snake">
+<div class="meta"><div class="title">Snake (2D)</div><div class="cat">Arcade • WASD / Arrow keys</div></div>
+</a>
+
+
+<a class="card" href="games/pong.html" target="_blank">
+<img src="https://picsum.photos/seed/pong/640/360" alt="Pong">
+<div class="meta"><div class="title">Pong (2D)</div><div class="cat">Sports • W/S + ↑/↓</div></div>
+</a>
+
+
+<a class="card" href="games/flappy.html" target="_blank">
+<img src="https://picsum.photos/seed/flappy/640/360" alt="Flappy">
+<div class="meta"><div class="title">Flappy Square (2D)</div><div class="cat">Arcade • Space / Click</div></div>
+</a>
+
+
+<a class="card" href="games/breakout.html" target="_blank">
+<img src="https://picsum.photos/seed/breakout/640/360" alt="Breakout">
+<div class="meta"><div class="title">Breakout (2D)</div><div class="cat">Arcade • Mouse / Arrows</div></div>
+</a>
+
+
+<a class="card" href="games/3d_cube.html" target="_blank">
+<img src="https://picsum.photos/seed/3d/640/360" alt="3D">
+<div class="meta"><div class="title">3D Rolling Cube (WebGL / Three.js)</div><div class="cat">3D • Arrow keys</div></div>
+</a>
+
+
+<!-- You can duplicate the above pattern to link to more games -->
+
+
+</main>
+
+
+</html>

@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>3D Cube Avoid Game</title>
+  <style>
+    body {
+      margin: 0;
+      overflow: hidden;
+      background: #222; /* slightly lighter background */
+      color: white;
+      font-family: Arial, sans-serif;
+    }
+    #score {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      font-size: 20px;
+    }
+    #gameOver {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 40px;
+      display: none;
+      color: red;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <div id="score">Score: 0</div>
+  <div id="gameOver">GAME OVER<br>Press R to Restart</div>
+
+  <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
+  <script>
+    // Scene setup
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
+    const renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    document.body.appendChild(renderer.domElement);
+
+    // Player cube
+    const playerGeo = new THREE.BoxGeometry(1,1,1);
+    const playerMat = new THREE.MeshStandardMaterial({ color: 0x00ffcc });
+    const player = new THREE.Mesh(playerGeo, playerMat);
+    player.position.y = -3;
+    scene.add(player);
+
+    // Lighting (brighter)
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.6); // soft white light everywhere
+    scene.add(ambientLight);
+
+    const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
+    directionalLight.position.set(5, 10, 7).normalize();
+    scene.add(directionalLight);
+
+    // Camera
+    camera.position.z = 10;
+    camera.position.y = 0;
+
+    // Controls
+    const keys = {};
+    window.addEventListener("keydown", e => {
+      keys[e.key] = true;
+      if (e.key === "r") resetGame();
+    });
+    window.addEventListener("keyup", e => keys[e.key] = false);
+
+    // Falling objects
+    let obstacles = [];
+    let score = 0;
+    let gameOver = false;
+
+    function spawnObstacle() {
+      const geo = new THREE.BoxGeometry(1,1,1);
+      const mat = new THREE.MeshStandardMaterial({ color: 0xff3333 });
+      const obs = new THREE.Mesh(geo, mat);
+      obs.position.set((Math.random() - 0.5) * 10, 6, 0);
+      scene.add(obs);
+      obstacles.push(obs);
+    }
+
+    // Score update
+    const scoreEl = document.getElementById("score");
+    const gameOverEl = document.getElementById("gameOver");
+
+    function resetGame() {
+      // Clear obstacles
+      obstacles.forEach(o => scene.remove(o));
+      obstacles = [];
+      score = 0;
+      player.position.x = 0;
+      gameOver = false;
+      gameOverEl.style.display = "none";
+      scoreEl.textContent = "Score: 0";
+    }
+
+    function animate() {
+      requestAnimationFrame(animate);
+
+      if (gameOver) return;
+
+      // Move player
+      if(keys["ArrowLeft"] || keys["a"]) player.position.x -= 0.15;
+      if(keys["ArrowRight"] || keys["d"]) player.position.x += 0.15;
+
+      // Limit movement
+      player.position.x = Math.max(Math.min(player.position.x, 5), -5);
+
+      // Move obstacles
+      obstacles.forEach((obs, i) => {
+        obs.position.y -= 0.07;
+        if (obs.position.y < -5) {
+          scene.remove(obs);
+          obstacles.splice(i,1);
+          score++;
+          scoreEl.textContent = "Score: " + score;
+        }
+        // Collision detection
+        if (
+          Math.abs(player.position.x - obs.position.x) < 1 &&
+          Math.abs(player.position.y - obs.position.y) < 1
+        ) {
+          gameOver = true;
+          gameOverEl.style.display = "block";
+        }
+      });
+
+      renderer.render(scene, camera);
+    }
+
+    // Spawn new obstacles
+    setInterval(() => {
+      if (!gameOver) spawnObstacle();
+    }, 1000);
+
+    animate();
+
+    // Resize
+    window.addEventListener("resize", () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+  </script>
+</body>
+</html>

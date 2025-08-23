@@ -1,0 +1,208 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Pong Game</title>
+  <style>
+    body {
+      margin: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      background: #0f1724;
+      color: #e6eef6;
+      font-family: Arial, sans-serif;
+      overflow: hidden;
+    }
+    canvas {
+      background: #061922;
+      border: 4px solid #06b6d4;
+      border-radius: 10px;
+      display: none;
+    }
+    #scoreBoard {
+      position: absolute;
+      top: 20px;
+      font-size: 22px;
+      text-align: center;
+      color: #06b6d4;
+      display: none;
+      width: 100%;
+    }
+    #menu {
+      text-align: center;
+    }
+    #menu h1 {
+      color: #06b6d4;
+      font-size: 40px;
+      margin-bottom: 30px;
+      text-shadow: 0 0 10px #06b6d4;
+    }
+    .btn {
+      display: block;
+      margin: 15px auto;
+      padding: 12px 24px;
+      font-size: 20px;
+      color: #0f1724;
+      background: #06b6d4;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: 0.3s;
+      width: 180px;
+    }
+    .btn:hover {
+      background: #0ff;
+      transform: scale(1.05);
+    }
+    #instructions {
+      margin-top: 25px;
+      font-size: 16px;
+      color: #e6eef6;
+    }
+  </style>
+</head>
+<body>
+  <div id="menu">
+    <h1>Pong Game</h1>
+    <button class="btn" onclick="startGame(1)">1 Player</button>
+    <button class="btn" onclick="startGame(2)">2 Players</button>
+    <div id="instructions">
+      Controls:<br>
+      Player 1: W / S<br>
+      Player 2: ↑ / ↓<br>
+      Press <b>S</b> to Start, <b>R</b> to Restart
+    </div>
+  </div>
+
+  <div id="scoreBoard">Player 1: <span id="playerScore">0</span> | Player 2: <span id="cpuScore">0</span></div>
+  <canvas id="pongCanvas" width="600" height="400"></canvas>
+
+  <script>
+    const canvas = document.getElementById("pongCanvas");
+    const ctx = canvas.getContext("2d");
+
+    const playerScoreEl = document.getElementById("playerScore");
+    const cpuScoreEl = document.getElementById("cpuScore");
+
+    let paddleWidth = 12, paddleHeight = 80;
+    let playerY, player2Y;
+    let ballX, ballY, ballSize = 10, ballSpeedX, ballSpeedY;
+    let playerScore, player2Score;
+    let keys = {};
+    let gameMode = 1;
+    let gameRunning = false;
+
+    function resetBall() {
+      ballX = canvas.width / 2;
+      ballY = canvas.height / 2;
+      ballSpeedX = (Math.random() > 0.5 ? 5 : -5);
+      ballSpeedY = (Math.random() > 0.5 ? 5 : -5);
+    }
+
+    function resetGame() {
+      playerY = canvas.height / 2 - paddleHeight / 2;
+      player2Y = canvas.height / 2 - paddleHeight / 2;
+      playerScore = 0;
+      player2Score = 0;
+      playerScoreEl.textContent = playerScore;
+      cpuScoreEl.textContent = player2Score;
+      resetBall();
+    }
+
+    function drawPaddle(x, y) {
+      ctx.fillStyle = "#06b6d4";
+      ctx.fillRect(x, y, paddleWidth, paddleHeight);
+    }
+
+    function drawBall() {
+      ctx.fillStyle = "#ff6b6b";
+      ctx.beginPath();
+      ctx.arc(ballX, ballY, ballSize, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    function update() {
+      if (!gameRunning) return;
+
+      ballX += ballSpeedX;
+      ballY += ballSpeedY;
+
+      if (ballY - ballSize < 0 || ballY + ballSize > canvas.height) {
+        ballSpeedY *= -1;
+      }
+
+      if (ballX - ballSize < paddleWidth &&
+          ballY > playerY && ballY < playerY + paddleHeight) {
+        ballSpeedX *= -1;
+      }
+
+      if (ballX + ballSize > canvas.width - paddleWidth &&
+          ballY > player2Y && ballY < player2Y + paddleHeight) {
+        ballSpeedX *= -1;
+      }
+
+      if (ballX - ballSize < 0) {
+        player2Score++;
+        cpuScoreEl.textContent = player2Score;
+        resetBall();
+      }
+      if (ballX + ballSize > canvas.width) {
+        playerScore++;
+        playerScoreEl.textContent = playerScore;
+        resetBall();
+      }
+
+      if (keys["w"] && playerY > 0) playerY -= 6;
+      if (keys["s"] && playerY < canvas.height - paddleHeight) playerY += 6;
+
+      if (gameMode === 2) {
+        if (keys["ArrowUp"] && player2Y > 0) player2Y -= 6;
+        if (keys["ArrowDown"] && player2Y < canvas.height - paddleHeight) player2Y += 6;
+      } else {
+        let center = player2Y + paddleHeight / 2;
+        if (center < ballY - 10) player2Y += 4;
+        else if (center > ballY + 10) player2Y -= 4;
+      }
+
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      drawPaddle(0, playerY);
+      drawPaddle(canvas.width - paddleWidth, player2Y);
+      drawBall();
+    }
+
+    function gameLoop() {
+      update();
+      requestAnimationFrame(gameLoop);
+    }
+
+    window.addEventListener("keydown", (e) => {
+      keys[e.key] = true;
+      if (e.key === "r") {
+        resetGame();
+        gameRunning = false;
+      }
+      if (e.key === "s") {
+        gameRunning = true;
+      }
+    });
+
+    window.addEventListener("keyup", (e) => {
+      keys[e.key] = false;
+    });
+
+    function startGame(mode) {
+      gameMode = mode;
+      document.getElementById("menu").style.display = "none";
+      document.getElementById("scoreBoard").style.display = "block";
+      canvas.style.display = "block";
+      resetGame();
+      gameRunning = false;
+    }
+
+    gameLoop();
+  </script>
+</body>
+</html>
