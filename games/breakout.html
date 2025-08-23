@@ -103,14 +103,14 @@
 
       if (mode === 1) {
         paddles.push({ x: canvas.width/2 - paddleWidth/2, y: canvas.height-30, color: "#06b6d4", left: "ArrowLeft", right: "ArrowRight" });
-        balls.push({ x: canvas.width/2, y: canvas.height-50, dx: 3, dy: -3, color: "#ff6b6b", owner: 0 });
+        balls.push({ x: canvas.width/2, y: canvas.height-50, dx: 3, dy: -3, color: "#ff6b6b", owner: 0, isReward: false });
         scores.push(0);
         lives.push(3);
       } else {
         paddles.push({ x: canvas.width/4 - paddleWidth/2, y: canvas.height-30, color: "#06b6d4", left: "a", right: "d" });
         paddles.push({ x: 3*canvas.width/4 - paddleWidth/2, y: canvas.height-30, color: "#06b6d4", left: "ArrowLeft", right: "ArrowRight" });
-        balls.push({ x: canvas.width/4, y: canvas.height-50, dx: 3, dy: -3, color: "#ff6b6b", owner: 0 });
-        balls.push({ x: 3*canvas.width/4, y: canvas.height-50, dx: -3, dy: -3, color: "#00bfff", owner: 1 });
+        balls.push({ x: canvas.width/4, y: canvas.height-50, dx: 3, dy: -3, color: "#ff6b6b", owner: 0, isReward: false });
+        balls.push({ x: 3*canvas.width/4, y: canvas.height-50, dx: -3, dy: -3, color: "#00bfff", owner: 1, isReward: false });
         scores.push(0,0);
         lives.push(3,3);
       }
@@ -166,7 +166,15 @@
               brick.status = 0;
               scores[ball.owner]++;
               if (scores[ball.owner] % 6 === 0) {
-                balls.push({ x: ball.x, y: ball.y, dx: -ball.dx, dy: ball.dy, color: ball.color, owner: ball.owner });
+                balls.push({ 
+                  x: ball.x, 
+                  y: ball.y, 
+                  dx: -ball.dx, 
+                  dy: ball.dy, 
+                  color: ball.color, 
+                  owner: ball.owner, 
+                  isReward: true 
+                });
               }
             }
           }
@@ -227,18 +235,29 @@
 
         collisionDetection(ball);
 
+        // Ball hits bottom
         if (ball.y + 8 > canvas.height) {
-          lives[ball.owner]--;
-          balls.splice(index,1);
-          if (lives[ball.owner] <= 0) {
-            if (mode===1) gameOver("Game Over! Your Score: "+scores[0]);
-            else {
-              let winner = scores[0]===scores[1] ? "Draw!" : (scores[0]>scores[1]?"Player 1 Wins!":"Player 2 Wins!");
-              gameOver(winner);
+          if (!ball.isReward) {   // Only main balls affect lives
+            lives[ball.owner]--;
+            if (lives[ball.owner] <= 0) {
+              if (mode===1) gameOver("Game Over! Your Score: "+scores[0]);
+              else {
+                let winner = scores[0]===scores[1] ? "Draw!" : (scores[0]>scores[1]?"Player 1 Wins!":"Player 2 Wins!");
+                gameOver(winner);
+              }
+            } else {
+              balls.push({ 
+                x: paddles[ball.owner].x+paddleWidth/2, 
+                y: canvas.height-50, 
+                dx: 3, 
+                dy: -3, 
+                color: ball.color, 
+                owner: ball.owner, 
+                isReward: false 
+              });
             }
-          } else {
-            balls.push({ x: paddles[ball.owner].x+paddleWidth/2, y: canvas.height-50, dx: 3, dy: -3, color: ball.color, owner: ball.owner });
           }
+          balls.splice(index,1); // always remove the ball when it falls
         }
       });
 
