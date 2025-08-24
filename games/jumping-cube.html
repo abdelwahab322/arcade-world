@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Jumping Cube Arcade</title>
+<style>
+  body { margin:0; background:#111; display:flex; justify-content:center; align-items:center; height:100vh; flex-direction:column; }
+  canvas { background:#222; border:2px solid #fff; border-radius:6px; }
+  #score { color:white; font-size:18px; margin-top:10px; }
+</style>
+</head>
+<body>
+<canvas id="gameCanvas" width="400" height="600"></canvas>
+<div id="score">Score: 0</div>
+<script>
+const canvas = document.getElementById("gameCanvas");
+const ctx = canvas.getContext("2d");
+
+let cube = { x:180, y:500, w:40, h:40, vy:0, canDoubleJump:true };
+let platforms = [];
+let coins = [];
+let powerUps = [];
+let hazards = [];
+let keys = {};
+let score = 0;
+let gameOver = false;
+
+document.addEventListener("keydown", e => keys[e.code] = true);
+document.addEventListener("keyup", e => keys[e.code] = false);
+
+function spawnPlatform() {
+  let width = 80 + Math.random()*40;
+  let x = Math.random() * (canvas.width - width);
+  let y = -20;
+  platforms.push({x,y,w:width,h:15});
+}
+
+function spawnCoin() {
+  let size = 15;
+  let x = Math.random() * (canvas.width - size);
+  coins.push({x,y:0,w:size,h:size});
+}
+
+function spawnPowerUp() {
+  let size = 20;
+  let x = Math.random() * (canvas.width - size);
+  powerUps.push({x,y:0,w:size,h:size});
+}
+
+function spawnHazard() {
+  let size = 25;
+  let x = Math.random() * (canvas.width - size);
+  hazards.push({x,y:0,w:size,h:size});
+}
+
+function moveCube() {
+  if (keys["ArrowLeft"] && cube.x>0) cube.x -= 5;
+  if (keys["ArrowRight"] && cube.x+cube.w<canvas.width) cube.x += 5;
+  if (keys["ArrowUp"]) {
+    if (cube.vy === 0) {
+      cube.vy = -10; // normal jump
+      cube.canDoubleJump = true;
+    } else if (cube.canDoubleJump) { // double jump
+      cube.vy = -10;
+      cube.canDoubleJump = false;
+    }
+  }
+
+  cube.vy += 0.5; // gravity
+  cube.y += cube.vy;
+
+  platforms.forEach(p => {
+    if (cube.x < p.x+p.w && cube.x+cube.w > p.x && cube.y+cube.h > p.y && cube.y+cube.h < p.y+p.h && cube.vy > 0) {
+      cube.vy = -10;
+      cube.canDoubleJump = true;
+      score++;
+    }
+  });
+
+  coins.forEach((c,i) => {
+    if (cube.x < c.x+c.w && cube.x+cube.w > c.x && cube.y < c.y+c.h && cube.y+cube.h > c.y) {
+      score += 10;
+      coins.splice(i,1);
+    }
+  });
+
+  powerUps.forEach((p,i) => {
+    if (cube.x < p.x+p.w && cube.x+cube.w > p.x && cube.y < p.y+p.h && cube.y+cube.h > p.y) {
+      cube.canDoubleJump = true;
+      powerUps.splice(i,1);
+    }
+  });
+
+  hazards.forEach(h => {
+    if (cube.x < h.x+h.w && cube.x+cube.w > h.x && cube.y < h.y+h.h && cube.y+cube.h > h.y) {
+      gameOver = true;
+    }
+  });
+
+  if (cube.y > canvas.height) gameOver = true;
+}
+
+function updateObjects() {
+  platforms.forEach(p => p.y += 2);
+  platforms = platforms.filter(p => p.y < canvas.height);
+  if (Math.random() < 0.02) spawnPlatform();
+
+  coins.forEach(c => c.y += 3);
+  coins = coins.filter(c => c.y < canvas.height);
+  if (Math.random() < 0.01) spawnCoin();
+
+  powerUps.forEach(p => p.y += 2);
+  powerUps = powerUps.filter(p => p.y < canvas.height);
+  if (Math.random() < 0.005) spawnPowerUp();
+
+  hazards.forEach(h => h.y += 3);
+  hazards = hazards.filter(h => h.y < canvas.height);
+  if (Math.random() < 0.008) spawnHazard();
+}
+
+function draw() {
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+
+  // Draw cube
+  ctx.fillStyle = "#0ff";
+  ctx.fillRect(cube.x, cube.y, cube.w, cube.h);
+
+  // Draw platforms
+  ctx.fillStyle = "#ff0";
+  platforms.forEach(p => ctx.fillRect(p.x, p.y, p.w, p.h));
+
+  // Draw coins
+  ctx.fillStyle = "#ff8800";
+  coins.forEach(c => ctx.fillRect(c.x, c.y, c.w, c.h));
+
+  // Draw power-ups
+  ctx.fillStyle = "#0f0";
+  powerUps.forEach(p => ctx.fillRect(p.x, p.y, p.w, p.h));
+
+  // Draw hazards
+  ctx.fillStyle = "#f00";
+  hazards.forEach(h => ctx.fillRect(h.x, h.y, h.w, h.h));
+
+  document.getElementById("score").textContent = "Score: "+score;
+}
+
+function loop() {
+  if (!gameOver) {
+    moveCube();
+    updateObjects();
+    draw();
+    requestAnimationFrame(loop);
+  } else {
+    ctx.fillStyle = "rgba(0,0,0,0.5)";
+    ctx.fillRect(0,0,canvas.width,canvas.height);
+    ctx.fillStyle = "#fff";
+    ctx.font = "24px monospace";
+    ctx.fillText("Game Over", canvas.width/2-70, canvas.height/2);
+    ctx.font = "16px monospace";
+    ctx.fillText("Refresh to restart", canvas.width/2-70, canvas.height/2+30);
+  }
+}
+
+loop();
+</script>
+</body>
+</html>
