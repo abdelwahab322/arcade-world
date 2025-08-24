@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Color Catcher</title>
+<style>
+  body { margin:0; background:#111; display:flex; justify-content:center; align-items:center; height:100vh; flex-direction:column; }
+  canvas { background:#222; border:2px solid #fff; border-radius:6px; }
+  #score, #targetColor { color:white; font-size:18px; margin-top:10px; }
+</style>
+</head>
+<body>
+<canvas id="gameCanvas" width="400" height="600"></canvas>
+<div id="score">Score: 0</div>
+<div id="targetColor">Target Color: Red</div>
+
+<script>
+const canvas = document.getElementById("gameCanvas");
+const ctx = canvas.getContext("2d");
+
+let basket = { x: 180, y: 550, w: 60, h: 20, speed: 6 };
+let balls = [];
+let keys = {};
+let score = 0;
+let gameOver = false;
+
+const colors = ["red", "green", "blue", "yellow"];
+let targetColor = colors[Math.floor(Math.random() * colors.length)];
+document.getElementById("targetColor").textContent = "Target Color: " + targetColor;
+
+document.addEventListener("keydown", e => keys[e.code] = true);
+document.addEventListener("keyup", e => keys[e.code] = false);
+
+function spawnBall() {
+  let size = 20;
+  let x = Math.random() * (canvas.width - size);
+  let color = colors[Math.floor(Math.random() * colors.length)];
+  balls.push({ x, y: 0, w: size, h: size, color, speed: 3 + Math.random() * 2 });
+}
+
+function moveBasket() {
+  if (keys["ArrowLeft"] && basket.x > 0) basket.x -= basket.speed;
+  if (keys["ArrowRight"] && basket.x + basket.w < canvas.width) basket.x += basket.speed;
+}
+
+function updateBalls() {
+  balls.forEach(b => b.y += b.speed);
+
+  balls = balls.filter(b => {
+    if (b.y + b.h >= basket.y && b.x + b.w > basket.x && b.x < basket.x + basket.w) {
+      if (b.color === targetColor) score += 10;
+      else score -= 5;
+      // Change target color randomly after catching
+      targetColor = colors[Math.floor(Math.random() * colors.length)];
+      document.getElementById("targetColor").textContent = "Target Color: " + targetColor;
+      return false; // remove ball
+    } else if (b.y > canvas.height) {
+      if (b.color === targetColor) score -= 5; // missed target ball
+      return false;
+    }
+    return true;
+  });
+
+  if (score < 0) gameOver = true;
+}
+
+function draw() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  // Draw basket
+  ctx.fillStyle = "#fff";
+  ctx.fillRect(basket.x, basket.y, basket.w, basket.h);
+
+  // Draw balls
+  balls.forEach(b => {
+    ctx.fillStyle = b.color;
+    ctx.beginPath();
+    ctx.arc(b.x + b.w/2, b.y + b.h/2, b.w/2, 0, Math.PI*2);
+    ctx.fill();
+  });
+
+  document.getElementById("score").textContent = "Score: " + score;
+}
+
+function loop() {
+  if (!gameOver) {
+    moveBasket();
+    updateBalls();
+    draw();
+    if (Math.random() < 0.03) spawnBall();
+    requestAnimationFrame(loop);
+  } else {
+    ctx.fillStyle = "rgba(0,0,0,0.5)";
+    ctx.fillRect(0,0,canvas.width,canvas.height);
+    ctx.fillStyle = "#fff";
+    ctx.font = "24px monospace";
+    ctx.fillText("Game Over", canvas.width/2-70, canvas.height/2);
+    ctx.font = "16px monospace";
+    ctx.fillText("Refresh to restart", canvas.width/2-70, canvas.height/2+30);
+  }
+}
+
+loop();
+</script>
+</body>
+</html>
