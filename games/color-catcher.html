@@ -7,19 +7,20 @@
 <style>
   body { margin:0; background:#111; display:flex; justify-content:center; align-items:center; height:100vh; flex-direction:column; }
   canvas { background:#222; border:2px solid #fff; border-radius:6px; }
-  #score, #targetColor { color:white; font-size:18px; margin-top:10px; }
+  #score { color:white; font-size:18px; margin-top:10px; }
+  #targetColorBtn { width:50px; height:50px; border:none; border-radius:50%; margin-top:10px; }
 </style>
 </head>
 <body>
-<canvas id="gameCanvas" width="400" height="600"></canvas>
+<canvas id="gameCanvas" width="300" height="400"></canvas>
 <div id="score">Score: 0</div>
-<div id="targetColor">Target Color: Red</div>
+<button id="targetColorBtn"></button>
 
 <script>
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
 
-let basket = { x: 180, y: 550, w: 60, h: 20, speed: 6 };
+let basket = { x: 120, y: 350, w: 50, h: 15, speed: 5 };
 let balls = [];
 let keys = {};
 let score = 0;
@@ -27,16 +28,16 @@ let gameOver = false;
 
 const colors = ["red", "green", "blue", "yellow"];
 let targetColor = colors[Math.floor(Math.random() * colors.length)];
-document.getElementById("targetColor").textContent = "Target Color: " + targetColor;
+document.getElementById("targetColorBtn").style.backgroundColor = targetColor;
 
 document.addEventListener("keydown", e => keys[e.code] = true);
 document.addEventListener("keyup", e => keys[e.code] = false);
 
 function spawnBall() {
-  let size = 20;
+  let size = 15;
   let x = Math.random() * (canvas.width - size);
   let color = colors[Math.floor(Math.random() * colors.length)];
-  balls.push({ x, y: 0, w: size, h: size, color, speed: 3 + Math.random() * 2 });
+  balls.push({ x, y: 0, w: size, h: size, color, speed: 2 + Math.random() * 2 });
 }
 
 function moveBasket() {
@@ -51,12 +52,11 @@ function updateBalls() {
     if (b.y + b.h >= basket.y && b.x + b.w > basket.x && b.x < basket.x + basket.w) {
       if (b.color === targetColor) score += 10;
       else score -= 5;
-      // Change target color randomly after catching
       targetColor = colors[Math.floor(Math.random() * colors.length)];
-      document.getElementById("targetColor").textContent = "Target Color: " + targetColor;
-      return false; // remove ball
+      document.getElementById("targetColorBtn").style.backgroundColor = targetColor;
+      return false;
     } else if (b.y > canvas.height) {
-      if (b.color === targetColor) score -= 5; // missed target ball
+      if (b.color === targetColor) score -= 5;
       return false;
     }
     return true;
@@ -94,10 +94,10 @@ function loop() {
     ctx.fillStyle = "rgba(0,0,0,0.5)";
     ctx.fillRect(0,0,canvas.width,canvas.height);
     ctx.fillStyle = "#fff";
-    ctx.font = "24px monospace";
-    ctx.fillText("Game Over", canvas.width/2-70, canvas.height/2);
-    ctx.font = "16px monospace";
-    ctx.fillText("Refresh to restart", canvas.width/2-70, canvas.height/2+30);
+    ctx.font = "20px monospace";
+    ctx.fillText("Game Over", canvas.width/2-60, canvas.height/2);
+    ctx.font = "14px monospace";
+    ctx.fillText("Refresh to restart", canvas.width/2-60, canvas.height/2+25);
   }
 }
 
