@@ -26,6 +26,9 @@ let keys = {};
 let score = 0;
 let gameOver = false;
 
+// Add initial platform so cube doesn't fall immediately
+platforms.push({ x: 160, y: 540, w: 80, h: 15 });
+
 document.addEventListener("keydown", e => keys[e.code] = true);
 document.addEventListener("keyup", e => keys[e.code] = false);
 
